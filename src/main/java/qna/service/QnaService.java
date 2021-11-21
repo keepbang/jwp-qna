@@ -30,6 +30,6 @@ public class QnaService {
 
     @Transactional
     public void deleteQuestion(User loginUser, Question question) {
-        deleteHistoryRepository.saveAll(question.delete(loginUser).getDeleteHistories());
+        deleteHistoryRepository.saveAll(question.delete(loginUser));
     }
 }
