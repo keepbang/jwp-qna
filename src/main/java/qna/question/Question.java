@@ -1,10 +1,9 @@
 package qna.question;
 
-import qna.deletehistory.DeleteHistories;
-import qna.deletehistory.DeleteHistory;
-import qna.exception.CannotDeleteException;
 import qna.answer.Answer;
+import qna.deletehistory.DeleteHistory;
 import qna.domain.BaseEntity;
+import qna.exception.CannotDeleteException;
 import qna.user.User;
 
 import javax.persistence.*;
@@ -15,27 +14,21 @@ import java.util.Objects;
 @Table(name = "question")
 public class Question extends BaseEntity{
     private static final String CAN_NOT_DELETE = "질문을 삭제할 권한이 없습니다.";
-
+    @Embedded
+    private final Answers answers = new Answers();
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writer_id", foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User user;
-
     @Lob
     @Column(name = "contests")
     private String contents;
-
     @Column(name = "delete", nullable = false)
     private boolean deleted = false;
-
     @Embedded
     private Title title;
-
-    @Embedded
-    private final Answers answers = new Answers();
 
     public Question(final String title, final String contents, final User user) {
         Objects.requireNonNull(user);
@@ -77,11 +70,11 @@ public class Question extends BaseEntity{
         return deleted;
     }
 
-    public DeleteHistories delete(User loginUser) {
+    public List<DeleteHistory> delete(User loginUser) {
         throwExceptionNotDeletableUser(loginUser);
         deleteAnswers(loginUser);
         changeDeleted();
-        return DeleteHistories.fromDeleteHistoriesByQuestion(this);
+        return DeleteHistory.ofDeleteHistoriesByQuestion(this);
     }
 
     private void changeDeleted(){

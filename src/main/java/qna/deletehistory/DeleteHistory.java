@@ -7,29 +7,27 @@ import qna.user.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
 @Table(name = "delete_history")
 public class DeleteHistory{
+    @Column(name = "created_date")
+    private final LocalDateTime createdDate = LocalDateTime.now();
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-
     @Column(name = "content_type")
     @Enumerated(EnumType.STRING)
     private ContentType contentType;
-
     @Column(name = "content_id")
     private Long contentId;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delete_by_id", foreignKey = @ForeignKey(name = "fk_delete_history_to_user"))
     private User deletedByUser;
-
-    @Column(name = "created_date")
-    private final LocalDateTime createdDate = LocalDateTime.now();
 
     protected DeleteHistory() {
     }
@@ -46,11 +44,18 @@ public class DeleteHistory{
         this.deletedByUser = deletedByUser;
     }
 
-    public static DeleteHistory fromAnswer(Answer answer){
+    public static List<DeleteHistory> ofDeleteHistoriesByQuestion(Question question) {
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        deleteHistories.add(DeleteHistory.fromQuestion(question));
+        deleteHistories.addAll(question.createAnswersDeleteHistories());
+        return deleteHistories;
+    }
+
+    public static DeleteHistory fromAnswer(Answer answer) {
         return new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.getUser());
     }
 
-    public static DeleteHistory fromQuestion(Question question){
+    public static DeleteHistory fromQuestion(Question question) {
         return new DeleteHistory(ContentType.QUESTION, question.getId(), question.getUser());
     }
 
